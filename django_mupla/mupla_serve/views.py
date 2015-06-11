@@ -7,7 +7,7 @@ from mupla_cython import mupla_cython
 from PyPDF2 import PdfFileMerger
 
 def upload(filepath):
-    js = mupla_cython.PyMuPlaRun(filepath)
+    js = mupla_cython.PyMuPlaRun("../pdfs/"+filepath)
     if len(js) == 0:
         raise Exception("Invalid PDF file")
     f = open("../pdfs/"+filepath+".js",'w')

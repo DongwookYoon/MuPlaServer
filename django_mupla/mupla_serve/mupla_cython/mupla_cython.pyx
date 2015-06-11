@@ -55,8 +55,7 @@ cdef JSONify_Doc(MuPlaDoc doc):
         js_doc.append(JSONify_Page(doc.pages[i]))
     return js_doc
 
-def PyMuPlaRun(py_pdf_path):
-    py_pdf_path = "../pdfs/" + py_pdf_path
+def PyMuPlaRun(py_pdf_path): 
     cpdef char* c_pdf_path = py_pdf_path;
     cdef MuPlaDoc cmupladoc;
     try:
