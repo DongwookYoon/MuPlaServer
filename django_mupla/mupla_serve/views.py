@@ -2,52 +2,58 @@ import os
 import shutil
 import json
 from django.http import HttpResponse
-from django.views.decorators.csrf import csrf_exempt
+if __name__ != "__main__":
+    from django.views.decorators.csrf import csrf_exempt
 from mupla_cython import mupla_cython
-from PyPDF2 import PdfFileMerger
+from PyPDF2 import PdfFileMerger, PdfFileReader
 
-def upload(filepath):
-    js = mupla_cython.PyMuPlaRun("../pdfs/"+filepath)
-    if len(js) == 0:
-        raise Exception("Invalid PDF file")
-    f = open("../pdfs/"+filepath+".js",'w')
-    f.write(json.dumps(js))
-    f.close()
-    return HttpResponse("succeed", content_type="application/json")
+def run_mupla(dir_path):
+    pdfs = []
+    filen = 0
 
-def merge(myuuid):
-    path = "../pdfs/"+myuuid
-    l = []
-    for dir, dirs, files in os.walk(path):
-        for file in files:
-            fpath = os.path.join(dir, file)
-            fn, fext = os.path.splitext(file)
-            if fext == ".pdf":
-                l.append(fpath)
+    while(True):
+        pdf_path = dir_path+"/"+str(filen)+".pdf"
+        if os.path.isfile(pdf_path):
+            pdfs.append(pdf_path)
+            filen += 1
+        else:
+            break
 
-    output_fname = path+"/merged.pdf"
-    if len(l) == 1:
-        shutil.copyfile(l[0], output_fname)
+    merged_pdf_path = dir_path+"/merged.pdf"
+    if len(pdfs) == 0:
+        raise Exception("No PDF file available")
+    elif len(pdfs) == 1:
+        shutil.copyfile(pdfs[0], merged_pdf_path)
     else:
         merger = PdfFileMerger()
-        for fpath in l:
-            f = open(fpath, "rb")
-            merger.append(f)
-            f.close()
-        output = open(output_fname, "wb")
-        merger.write(output)
-        output.close()
-    return HttpResponse("succeed", content_type="application/json")
+        for pdf in pdfs:
+            with open(pdf, "rb") as f:
+                merger.append(PdfFileReader(f))
+                f.close()
+        with open(merged_pdf_path, "wb") as output:
+            merger.write(output)
+            output.close()
+
+    js = mupla_cython.PyMuPlaRun(merged_pdf_path)
+    if len(js) == 0:
+        raise Exception("Invalid PDF file")
+    with open(dir_path+"/merged.js", 'w') as f:
+        f.write(json.dumps(js))
+        f.close()
 
 @csrf_exempt
 def get_pdf_post(request):
     try:
-        if request.POST["mode"] ==  "UploadFile":
-            return upload(request.POST["filepath"])
         if request.POST["mode"] ==  "MergePdfs":
-            return merge(request.POST["uuid"])
+            run_mupla("../pdfs/"+request.POST["uuid"])
+            return HttpResponse("succeed", content_type="application/json")
+        else:
+            raise Exception("Invalid request to the MuPla server")
 
     except Exception as e:
         print "Exception"
         print e
         return HttpResponse(str(e), content_type="application/json")
+
+if __name__ == "__main__":
+    run_mupla("./pdfs/a2d0ce10-12d7-11e5-abf8-d7cd6cb0153a")
