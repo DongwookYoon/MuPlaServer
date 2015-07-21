@@ -1,23 +1,24 @@
 CC=gcc
-LDFLAGS=-lcrypto
+LDFLAGS=
 INC= -I../mupdf-1.6-source/include
 OBJ_PATH = ../mupdf-1.6-source/build/debug/
-OBJ= $(OBJ_PATH)*.a $(OBJ_PATH)freetype/*.o $(OBJ_PATH)jpeg/*.o $(OBJ_PATH)jbig2dec/*.o $(OBJ_PATH)**/*.o $(OBJ_PATH)pdf/js/*.o
+OBJ= $(OBJ_PATH)**/*.o $(OBJ_PATH)libmupdf.a 
 
-all: clean mupla.o libmupla.a test runtest
+all: clean mupla.o mupla.so test runtest
+
 
 mupla.o: mupla.c
-	$(CC) -c mupla.c -shared -fPIC $(INC) -lcrypto
+	$(CC) -c mupla.c -fPIC $(INC) -lm $(LDFLAG)
 
-libmupla.a: mupla.o $(OBJ)
-	ar rcs libmupla.a mupla.o $(OBJ)
+mupla.so: mupla.o $(OBJ)
+	$(CC) -shared -o mupla.so mupla.o $(OBJ) 
 
 test: test.c
-	$(CC) -o test test.c -L. $(INC) libmupla.a -lm -lcrypto
+	$(CC) -o test test.c -L. $(INC) mupla.so -lm $(LDFLAGS)
+
 
 clean:
-	rm -f mupla.o libmupla.a test
+	rm -f mupla.o mupla.so test
 
 runtest:
 	./test
-

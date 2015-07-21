@@ -1,7 +1,7 @@
 #include "mupla.h"
 
 int main(){
-    MuPlaRun("../pdfs/4.pdf");
-    MuPlaRun("../pdfs/x4.pdf");
+    MuPlaRun("test_sample.pdf");
+    MuPlaRun("nonexistingfile.pdf");
     return 0;
 }
