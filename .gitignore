@@ -1,4 +1,3 @@
 mupdf-1.6-source
-pdfs
-*/.idea/
-*/.DS_Store/
+*.idea
+*.DS_Store
